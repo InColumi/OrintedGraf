@@ -48,11 +48,19 @@ class OrGrafOnMatrix
 
 	void DeleleVertex(char name)
 	{
-		cout << "ћатрица смежности имеет вид:\n";
-		ShowMatrix();
-		DeleteVertexByName(name);
-		cout << "ѕосле удаление вершин, которые не могут достичь вершины " << name << " матрица смежности имеет вид:\n";
-		ShowMatrix();
+		if(IsCorrectName(name))
+		{
+			cout << "ћатрица смежности имеет вид:\n";
+			ShowMatrix();
+			DeleteVertexByName(name);
+			cout << "ѕосле удаление вершин, которые не могут достичь вершины " << name << " матрица смежности имеет вид:\n";
+			ShowMatrix();
+		}
+		else
+		{
+			cout << "¬ершины с таким именем - нет!";
+			exit(0);
+		}
 	}
 
 	private:
@@ -96,12 +104,10 @@ class OrGrafOnMatrix
 					indexJ++;
 					continue;
 				}
-				newMatrix[countRow][countColumn] = _matrix[i][j];
-				countColumn++;
+				newMatrix[countRow][countColumn++] = _matrix[i][j];
 			}
 			countColumn = 0;
 			countRow++;
-
 		}
 		_size -= sizeIndexes;
 		_matrix = newMatrix;
@@ -109,27 +115,22 @@ class OrGrafOnMatrix
 
 	int* GetIndexesVertexesForDeleting(char name, int& sizeIndexes)
 	{
-		if(IsCorrectName(name))
+		int size = 0;
+		int* indexesForDelete = new int[size];
+		int index = GetIndexByNameVertex(name);
+		for(int i = 0; i < _size; i++)
 		{
-			int size = 0;
-			int* indexesForDelete = new int[size];
-			int index = GetIndexByNameVertex(name);
-			for(int i = 0; i < _size; i++)
+			if(name != _namesVertex[i])
 			{
-				if(name != _namesVertex[i])
-				{
 
-					if(_matrix[i][index] == 0)
-					{
-						indexesForDelete = AddToArray(indexesForDelete, size, GetIndexByNameVertex(_namesVertex[i]));
-					}
+				if(_matrix[i][index] == 0)
+				{
+					indexesForDelete = AddToArray(indexesForDelete, size, GetIndexByNameVertex(_namesVertex[i]));
 				}
 			}
-			sizeIndexes = size;
-			return indexesForDelete;
 		}
-		cout << "¬ершины с таким именем - нет!";
-		exit(0);
+		sizeIndexes = size;
+		return indexesForDelete;
 	}
 
 	void ShowMatrix()
@@ -152,7 +153,6 @@ class OrGrafOnMatrix
 			if(line[i] == '1')
 			{
 				_matrix[indexRows][indexColums++] = 1;
-				
 				continue;
 			}
 			if(line[i] == '0')
@@ -253,8 +253,7 @@ class Node
 		{
 			newValues[i] = _values[i];
 		}
-		newValues[_countValue] = newValue;
-		++_countValue;
+		newValues[_countValue++] = newValue;
 		_values = newValues;
 	}
 
@@ -339,11 +338,15 @@ class OrGrafOnList
 			cout << "√раф имеет следующий список смежности:\n";
 			ShowNodes();
 			DeleteVertexByName(name);
+
 			cout << "ѕосле удаление вершин, которые не могут достичь вершины " << name << " список смежности имеет вид:\n";
 			ShowNodes();
 		}
-		exit(0);
-		cout << "¬веденой вершины с таким именем - нет!";
+		else
+		{
+			cout << "¬веденой вершины с таким именем - нет!";
+			exit(0);
+		}
 	}
 	private:
 
@@ -351,31 +354,58 @@ class OrGrafOnList
 	{
 		int countNodesForDeleting = 0;
 		Node* nodesForDeleting = GetNodesForDeleting(name, countNodesForDeleting);
-		ShowNodes();
+		ResizeNodes(nodesForDeleting, countNodesForDeleting);
+	}
+
+	void ResizeNodes(Node* nodesForDeleting, int countNodeForDeleting)
+	{
+		int countNewNodes = _countNodes - countNodeForDeleting;
+		Node* newNodes = new Node[countNewNodes];
+		bool isGoodNode = true;
+		int indexForNewNodes = 0;
+		for(int i = 0; i < _countNodes; i++)
+		{
+			for(int j = 0; j < countNodeForDeleting; j++)
+			{
+				if(_nodes[i].GetName() ==  nodesForDeleting[j].GetName())
+				{
+					isGoodNode = false;
+					break;
+				}
+			}
+			if(isGoodNode)
+			{
+				newNodes[indexForNewNodes++] = _nodes[i];
+			}
+			isGoodNode = true;
+		}
+		_nodes = newNodes;
+		_countNodes = countNewNodes;
 	}
 
 	Node* GetNodesForDeleting(char name, int& countNodesForDeleting)
 	{
 		Node* nodesForDeleting = new Node[countNodesForDeleting];
+		bool isGoodVertex = false;
 		for(int i = 0; i < _countNodes; i++)
 		{
 			if(_nodes[i].GetName() != name)
 			{
 				char* tempValue = _nodes[i].GetValues();
-				bool isGoodVertex = false;
-
 				for(int j = 0; j < _nodes[i].GetCountValues(); j++)
 				{
 					if(tempValue[j] == name)
 					{
-						isGoodVertex == true;
+						isGoodVertex = true;
+						break;
 					}
 				}
+
 				if(isGoodVertex == false)
 				{
-					nodesForDeleting = AddNode(nodesForDeleting, _nodes[i], countNodesForDeleting);
-					countNodesForDeleting++;
+					nodesForDeleting = AddNode(nodesForDeleting, _nodes[i], countNodesForDeleting++);
 				}
+				isGoodVertex = false;
 			}
 		}
 		return nodesForDeleting;
@@ -404,8 +434,7 @@ class OrGrafOnList
 		{
 			if(line[i] != ' ')
 			{
-				_nodes[countNewNodes] = Node(line[i]);
-				++countNewNodes;
+				_nodes[countNewNodes++] = Node(line[i]);
 			}
 		}
 	}
