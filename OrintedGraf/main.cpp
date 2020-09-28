@@ -8,18 +8,18 @@ using namespace std;
 class OrGrafOnMatrix
 {
 	private:
+
 	int _size;
 	bool** _matrix;
 	char* _namesVertex;
+	
 	public:
-	OrGrafOnMatrix(int size)
+	
+	OrGrafOnMatrix()
 	{
-		_size = size;
-		_matrix = AllocationMemory(_size);
-		_namesVertex = new char[_size];
+		_size = 0;
+		Initialization();
 	}
-
-	public:
 
 	void ReadFromFile(string fileName)
 	{
@@ -33,6 +33,7 @@ class OrGrafOnMatrix
 		string line;
 		getline(in, line);
 		_size = stoi(line);
+		Initialization();
 
 		getline(in, line);
 		SetNamesVertex(line);
@@ -45,24 +46,30 @@ class OrGrafOnMatrix
 		in.close();
 	}
 
-	void DeleleVertex(char nameVertex)
+	void DeleleVertex(char name)
 	{
 		cout << "ћатрица смежности имеет вид:\n";
 		ShowMatrix();
-		DeleteVertexByName(nameVertex);
-		cout << "ѕосле удаление вершин, которые не могут достичь вершины " << nameVertex << " матрица смежности имеет вид:\n";
+		DeleteVertexByName(name);
+		cout << "ѕосле удаление вершин, которые не могут достичь вершины " << name << " матрица смежности имеет вид:\n";
 		ShowMatrix();
 	}
 
 	private:
 
-	void DeleteVertexByName(char nameVertex)
+	void Initialization()
+	{
+		_matrix = AllocationMemory(_size);
+		_namesVertex = new char[_size];
+	}
+
+	void DeleteVertexByName(char name)
 	{
 		int sizeIndexes = 0;
-		int* indexesVertexesForDeleting = GetIndexesVertexesForDeleting(nameVertex, sizeIndexes);
+		int* indexesVertexesForDeleting = GetIndexesVertexesForDeleting(name, sizeIndexes);
 		for(int i = 0; i < sizeIndexes; i++)
 		{
-			cout << "¬ вершину " << nameVertex << " нельз€ попасть из " << _namesVertex[indexesVertexesForDeleting[i]] << "\n";
+			cout << "¬ вершину " << name << " нельз€ попасть из " << _namesVertex[indexesVertexesForDeleting[i]] << "\n";
 		}
 		ResizeMatrix(indexesVertexesForDeleting, sizeIndexes);
 	}
@@ -100,16 +107,16 @@ class OrGrafOnMatrix
 		_matrix = newMatrix;
 	}
 
-	int* GetIndexesVertexesForDeleting(char nameVertex, int& sizeIndexes)
+	int* GetIndexesVertexesForDeleting(char name, int& sizeIndexes)
 	{
-		if(IsCorrectNameVertex(nameVertex))
+		if(IsCorrectName(name))
 		{
 			int size = 0;
 			int* indexesForDelete = new int[size];
-			int index = GetIndexByNameVertex(nameVertex);
+			int index = GetIndexByNameVertex(name);
 			for(int i = 0; i < _size; i++)
 			{
-				if(nameVertex != _namesVertex[i])
+				if(name != _namesVertex[i])
 				{
 
 					if(_matrix[i][index] == 0)
@@ -169,11 +176,11 @@ class OrGrafOnMatrix
 		}
 	}
 
-	bool IsCorrectNameVertex(char nameVertex)
+	bool IsCorrectName(char name)
 	{
 		for(int i = 0; i < _size; i++)
 		{
-			if(_namesVertex[i] == nameVertex)
+			if(_namesVertex[i] == name)
 			{
 				return true;
 			}
@@ -181,11 +188,11 @@ class OrGrafOnMatrix
 		return false;
 	}
 
-	int GetIndexByNameVertex(char nameVertex)
+	int GetIndexByNameVertex(char name)
 	{
 		for(int i = 0; i < _size; i++)
 		{
-			if(_namesVertex[i] == nameVertex)
+			if(_namesVertex[i] == name)
 			{
 				return i;
 			}
@@ -217,16 +224,240 @@ class OrGrafOnMatrix
 	}
 };
 
-int main()
+class Node
 {
-	setlocale(LC_ALL, "rus");
-	OrGrafOnMatrix grafMatrix(4);
+	private:
+	char _name;
+	char* _values;
+	int _countValue;
+	public:
+
+	Node()
+	{
+		_name = ' ';
+		_countValue = 0;
+		_values = new char[_countValue];
+	}
+
+	Node(int name)
+	{
+		_name = name;
+		_countValue = 0;
+		_values = new char[_countValue];
+	}
+
+	void AddValue(char newValue)
+	{
+		char* newValues = new char[_countValue + 1];
+		for(int i = 0; i < _countValue; i++)
+		{
+			newValues[i] = _values[i];
+		}
+		newValues[_countValue] = newValue;
+		++_countValue;
+		_values = newValues;
+	}
+
+	char GetName()
+	{
+		return _name;
+	}
+
+	char* GetValues()
+	{
+		return _values;
+	}
+
+	int GetCountValues()
+	{
+		return _countValue;
+	}
+
+	void ShowInfo()
+	{
+		cout << _name << " => ";
+		for(int i = 0; i < _countValue - 1; i++)
+		{
+			cout << _values[i] << ',';
+		}
+		cout << _values[_countValue - 1] << '\n';
+	}
+};
+
+class OrGrafOnList
+{
+	private:
+	Node* _nodes;
+	int _countNodes;
+	public:
+
+	OrGrafOnList()
+	{
+		_countNodes = 0;
+		_nodes = new Node[_countNodes];
+	}
+
+	
+	void ReadFromFile(string fileName)
+	{
+		ifstream in;
+		in.open(fileName);
+		if(in.is_open() == false)
+		{
+			cout << "Ќе удалось найти указанный файл.\n";
+		}
+
+		string line;
+		getline(in, line);
+		_countNodes = stoi(line);
+		Initialization();
+
+		int countNodes = 0;
+		while(getline(in, line))
+		{
+			for(int i = 0; i < line.size(); i++)
+			{
+				if(i == 0)
+				{
+					_nodes[countNodes] = Node(line[0]);
+					continue;
+				}
+				if(line[i] != ' ' && line[i] != ',')
+				{
+					_nodes[countNodes].AddValue(line[i]);
+				}
+			}
+			++countNodes;
+		}
+		in.close();
+	}
+	
+	void DeleteVertex(char name)
+	{
+		if(IsCorrectName(name))
+		{
+			cout << "√раф имеет следующий список смежности:\n";
+			ShowNodes();
+			DeleteVertexByName(name);
+			cout << "ѕосле удаление вершин, которые не могут достичь вершины " << name << " список смежности имеет вид:\n";
+			ShowNodes();
+		}
+		exit(0);
+		cout << "¬веденой вершины с таким именем - нет!";
+	}
+	private:
+
+	void DeleteVertexByName(char name)
+	{
+		int countNodesForDeleting = 0;
+		Node* nodesForDeleting = GetNodesForDeleting(name, countNodesForDeleting);
+		ShowNodes();
+	}
+
+	Node* GetNodesForDeleting(char name, int& countNodesForDeleting)
+	{
+		Node* nodesForDeleting = new Node[countNodesForDeleting];
+		for(int i = 0; i < _countNodes; i++)
+		{
+			if(_nodes[i].GetName() != name)
+			{
+				char* tempValue = _nodes[i].GetValues();
+				bool isGoodVertex = false;
+
+				for(int j = 0; j < _nodes[i].GetCountValues(); j++)
+				{
+					if(tempValue[j] == name)
+					{
+						isGoodVertex == true;
+					}
+				}
+				if(isGoodVertex == false)
+				{
+					nodesForDeleting = AddNode(nodesForDeleting, _nodes[i], countNodesForDeleting);
+					countNodesForDeleting++;
+				}
+			}
+		}
+		return nodesForDeleting;
+	}
+
+	Node* AddNode(Node* nodes, Node newNode, int size)
+	{
+		Node* newNodes = new Node[size + 1];
+		for(int i = 0; i < size; i++)
+		{
+			newNodes[i] = nodes[i];
+		}
+		newNodes[size] = newNode;
+		return newNodes;
+	}
+
+	void Initialization()
+	{
+		_nodes = new Node[_countNodes];
+	}
+
+	void SetNamesVertex(string line)
+	{
+		int countNewNodes = 0;
+		for(int i = 0; i < line.size(); i++)
+		{
+			if(line[i] != ' ')
+			{
+				_nodes[countNewNodes] = Node(line[i]);
+				++countNewNodes;
+			}
+		}
+	}
+
+	void ShowNodes()
+	{
+		for(int i = 0; i < _countNodes; i++)
+		{
+			_nodes[i].ShowInfo();
+		}
+	}
+
+	bool IsCorrectName(char name)
+	{
+		for(int i = 0; i < _countNodes; i++)
+		{
+			if(_nodes[i].GetName() == name)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+};
+
+
+void Matrix()
+{
+	OrGrafOnMatrix grafMatrix;
 	grafMatrix.ReadFromFile("fileWithMatrix.txt");
 
 	cout << "¬ведите название вершины: ";
 	char nameVertex;
 	cin >> nameVertex;
 	grafMatrix.DeleleVertex(nameVertex);
+}
+
+void List()
+{
+	OrGrafOnList grafOnList;
+	grafOnList.ReadFromFile("fileWithList.txt");
 	
+	cout << "¬ведите название вершины: ";
+	char nameVertex;
+	cin >> nameVertex;
+	grafOnList.DeleteVertex(nameVertex);
+}
+
+int main()
+{
+	setlocale(LC_ALL, "rus");
+	//Matrix();
+	List();
 	return 0;
 }
