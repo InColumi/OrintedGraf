@@ -20,6 +20,11 @@ class OrGrafOnMatrix
 		_size = 0;
 		Initialization();
 	}
+	~OrGrafOnMatrix()
+	{
+		delete[] _namesVertex;
+		DeallovationMemory(_matrix, _size);
+	}
 
 	void ReadFromFile(string fileName)
 	{
@@ -80,6 +85,7 @@ class OrGrafOnMatrix
 			cout << "В вершину " << name << " нельзя попасть из " << _namesVertex[indexesVertexesForDeleting[i]] << "\n";
 		}
 		ResizeMatrix(indexesVertexesForDeleting, sizeIndexes);
+		delete[] indexesVertexesForDeleting;
 	}
 
 	void ResizeMatrix(int* indexes, int sizeIndexes)
@@ -111,6 +117,7 @@ class OrGrafOnMatrix
 		}
 		_size -= sizeIndexes;
 		_matrix = newMatrix;
+		DeallovationMemory(newMatrix, newSize);
 	}
 
 	int* GetIndexesVertexesForDeleting(char name, int& sizeIndexes)
@@ -221,6 +228,15 @@ class OrGrafOnMatrix
 			arr[i] = new bool[size];
 		}
 		return arr;
+	}
+
+	void DeallovationMemory(bool** arr, int size)
+	{
+		for(int i = 0; i < size; i++)
+		{
+			delete[] arr[i];
+		}
+		delete[] arr;
 	}
 };
 
@@ -459,7 +475,6 @@ class OrGrafOnList
 		return false;
 	}
 };
-
 
 void Matrix()
 {
